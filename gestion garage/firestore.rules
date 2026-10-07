@@ -1,0 +1,25 @@
+rules_version = '2';
+// Règles alignées sur src/core/permissions.js (A=ADMIN, M=MANAGER, X=MECANICIEN, S=SECRETAIRE). Chaque document porte garageId.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function mine(d) { return request.auth != null && d.garageId == me().garageId; }
+    function role(rs) { return me().role in rs; }
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.role == 'ADMIN' && request.resource.data.garageId == uid;
+      allow update: if request.auth.uid == uid && request.resource.data.role == resource.data.role && request.resource.data.garageId == resource.data.garageId;
+    }
+    match /clients/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /vehicles/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /appointments/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); }
+    match /repairs/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /diagnostics/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /parts/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /stockMovements/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE','MECANICIEN']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','MECANICIEN']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /quotes/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /invoices/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow delete: if mine(resource.data) && role(['ADMIN','MANAGER']); }
+    match /payments/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow create: if mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN','MANAGER','SECRETAIRE']); allow delete: if mine(resource.data) && role(['ADMIN']); }
+    match /employees/{id} { allow read: if mine(resource.data) && role(['ADMIN','MANAGER']); allow create: if mine(request.resource.data) && role(['ADMIN']); allow update: if mine(resource.data) && mine(request.resource.data) && role(['ADMIN']); allow delete: if mine(resource.data) && role(['ADMIN']); }
+  }
+}
